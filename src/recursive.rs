@@ -10,13 +10,14 @@ use rug::Float;
 
 use crate::NodeModuleMap;
 
-// @TODO: Refactor to functional style
-
 pub fn recursive_search<'a, 'b>(
     dir: &'a Path,
     module_map: &'b mut NodeModuleMap,
 ) -> Result<(), Box<dyn Error>> {
-    let path = fs::read_dir(dir)?.filter_map(Result::ok);
+    let path = fs::read_dir(dir)?
+        .filter_map(Result::ok)
+        .filter(is_not_hidden);
+
     for entry in path {
         let file_path_buf = entry.path();
         if let Ok(attribs) = file_path_buf.metadata() {
@@ -24,8 +25,7 @@ pub fn recursive_search<'a, 'b>(
 
             if file_type.is_symlink() {
                 continue;
-            } else if file_type.is_dir() && is_node_modules(&file_path_buf) && is_not_hidden(&entry)
-            {
+            } else if file_type.is_dir() && is_node_modules(&file_path_buf) {
                 module_map.add(file_path_buf);
             } else if file_type.is_dir() {
                 recursive_search(&file_path_buf, module_map)?;
@@ -39,6 +39,7 @@ pub fn recursive_count<'c, 'd>(dir: &'c PathBuf) -> Result<Float, Box<dyn Error>
     // @TODO: make block calc platform generic - currently unix
     let path = fs::read_dir(dir)?.filter_map(Result::ok);
     let mut total_size = Float::with_val(32, 0.0);
+
     for entry in path {
         let file_path_buf = entry.path();
         if let Ok(attribs) = file_path_buf.metadata() {

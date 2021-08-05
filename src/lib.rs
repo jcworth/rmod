@@ -1,3 +1,4 @@
+use remove::remove_folders;
 use rug::Float;
 use std::{
     collections::HashMap,
@@ -12,6 +13,7 @@ use std::{
 };
 
 mod recursive;
+mod remove;
 mod spinner;
 
 pub struct Config {
@@ -31,7 +33,7 @@ impl Config {
 }
 
 enum FolderType {
-    NodeModules
+    NodeModules,
 }
 
 // Run the program
@@ -70,13 +72,18 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     // Wait for threads
     spinner_handle.join().unwrap();
     if let Ok(nm) = search_handle.join().unwrap() {
-        for e in nm.dirs {
+        for e in &nm.dirs {
             println!("Directory: {:?}, Size on disk: {:?} ", e.0, e.1);
+        }
+        // @TODO: this should be behind a y/n input
+        if let Ok(free_space) = remove_folders(nm) {
+            println!("Space freed: {:?}", &free_space);
         }
     }
 
-    // @TODO: Option to remove
+    // @TODO: Option to remove or exit
 
+    
     Ok(())
 }
 
@@ -94,8 +101,8 @@ pub struct NodeModuleMap {
 }
 
 impl NodeModuleMap {
-    fn new() -> NodeModuleMap {
-        NodeModuleMap {
+    fn new() -> Self {
+        Self {
             dirs: HashMap::new(),
             folder_count: 0,
         }
@@ -111,5 +118,5 @@ enum FileSize {
     B,
     KB,
     MB,
-    GB
+    GB,
 }
