@@ -1,7 +1,6 @@
 use std::{
     error::Error,
-    ffi::OsStr,
-    fs::{self, DirEntry},
+    fs,
     os::macos::fs::MetadataExt,
     path::{Path, PathBuf},
 };
@@ -32,7 +31,7 @@ pub fn recursive_search(dir: &Path, module_map: &mut NodeModuleMap) -> Result<()
     Ok(())
 }
 
-pub fn recursive_count<'c, 'd>(dir: &'c PathBuf) -> Result<Float, Box<dyn Error>> {
+pub fn recursive_count(dir: &PathBuf) -> Result<Float, Box<dyn Error>> {
     // @TODO: make block calc platform generic - currently unix/macos
     let path = fs::read_dir(dir)?.filter_map(Result::ok);
     let mut total_size = Float::with_val(32, 0.0);
