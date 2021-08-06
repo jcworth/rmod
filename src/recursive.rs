@@ -10,10 +10,7 @@ use rug::Float;
 
 use crate::NodeModuleMap;
 
-pub fn recursive_search<'a, 'b>(
-    dir: &'a Path,
-    module_map: &'b mut NodeModuleMap,
-) -> Result<(), Box<dyn Error>> {
+pub fn recursive_search(dir: &Path, module_map: &mut NodeModuleMap) -> Result<(), Box<dyn Error>> {
     let path = fs::read_dir(dir)?
         .filter_map(Result::ok)
         .filter(is_not_hidden);
@@ -36,7 +33,7 @@ pub fn recursive_search<'a, 'b>(
 }
 
 pub fn recursive_count<'c, 'd>(dir: &'c PathBuf) -> Result<Float, Box<dyn Error>> {
-    // @TODO: make block calc platform generic - currently unix
+    // @TODO: make block calc platform generic - currently unix/macos
     let path = fs::read_dir(dir)?.filter_map(Result::ok);
     let mut total_size = Float::with_val(32, 0.0);
 

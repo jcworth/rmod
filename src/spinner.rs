@@ -11,6 +11,7 @@ pub fn create_spinner(is_running: Arc<AtomicBool>) -> JoinHandle<()> {
     let spinner_handle = thread::spawn(move || {
         let status_chars = vec!['|', '/', '-', '\\'];
         let mut curr = 0;
+
         while is_running.load(Ordering::Relaxed) {
             // Clear stderr
             eprintln!("{}[2J", 27 as char);
