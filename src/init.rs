@@ -16,9 +16,10 @@ pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
 
     // Create spinner & begin search in separate threads
     let spinner_handle = spinner::create_spinner(is_searching);
-    let init_search_handle = search::init_search(is_searching_shared, &config);
+    let init_search_handle = search::init_search(is_searching_shared, config);
 
     // Wait for threads
+		// @TODO:  Better error handling here 
     spinner_handle.join().unwrap();
     if let Ok(nm) = init_search_handle.join().unwrap() {
         for e in &nm.dirs {

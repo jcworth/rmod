@@ -8,7 +8,7 @@ use std::{
 };
 
 pub fn create_spinner(is_running: Arc<AtomicBool>) -> JoinHandle<()> {
-    let spinner_handle = thread::spawn(move || {
+    thread::spawn(move || {
         let status_chars = vec!['|', '/', '-', '\\'];
         let mut curr = 0;
 
@@ -28,6 +28,5 @@ pub fn create_spinner(is_running: Arc<AtomicBool>) -> JoinHandle<()> {
         }
         // Clear stderr at end of loop
         eprintln!("{}[2J", 27 as char);
-    });
-    spinner_handle
+    })
 }

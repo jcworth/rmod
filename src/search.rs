@@ -16,7 +16,7 @@ pub fn init_search(
 ) -> JoinHandle<thread::Result<NodeModuleMap>> {
     // Run search & count in separate thread
     let target_dir = config.target_dir.clone();
-    let search_handle = thread::spawn(move || -> thread::Result<NodeModuleMap> {
+    thread::spawn(move || -> thread::Result<NodeModuleMap> {
         let mut node_map = NodeModuleMap::new();
 
         // Search for node_modules
@@ -29,12 +29,11 @@ pub fn init_search(
         // Store size of node folders
         for dir in &mut node_map.dirs {
             // bytes to mb
-            let new_file_size = recursive::recursive_count(&dir.0).unwrap() / 1000 / 1000;
+            let new_file_size = recursive::recursive_count(dir.0).unwrap() / 1000 / 1000;
             *dir.1 += new_file_size;
         }
 
         is_searching.store(false, Ordering::Relaxed);
         Ok(node_map)
-    });
-    search_handle
+    })
 }

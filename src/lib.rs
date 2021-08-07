@@ -38,11 +38,17 @@ impl NodeModuleMap {
         }
     }
 
-    fn add(&mut self, entry: PathBuf) -> () {
+    fn add(&mut self, entry: PathBuf) {
         self.dirs.insert(entry, Float::with_val(32, 0.0));
         self.folder_count += 1;
     }
 }
+
+// #[derive(Error)]
+// enum RMError {
+//     IOError,
+//     ConfigError
+// }
 
 // enum FolderType {
 //     NodeModules,
