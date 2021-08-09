@@ -1,22 +1,23 @@
+use error::RmError;
 use rug::Float;
 use std::{collections::HashMap, path::PathBuf};
 
+pub mod error;
 pub mod init;
 pub mod recursive;
 pub mod remove;
 pub mod search;
 pub mod spinner;
 pub mod utils;
-pub mod error;
 
 pub struct Config {
     target_dir: String,
 }
 
 impl Config {
-    pub fn new(args: &[String]) -> Result<Config, &str> {
+    pub fn new(args: &[String]) -> Result<Config, RmError> {
         if args.len() != 2 {
-            return Err("Incorrect number of args");
+            return Err(RmError::Config);
         }
 
         let target_dir = args[1].clone();

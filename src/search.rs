@@ -7,15 +7,15 @@ use std::{
     thread::{self, JoinHandle},
 };
 
-use crate::{recursive, Config, NodeModuleMap};
+use crate::{error::RmError, recursive, Config, NodeModuleMap};
 
 pub fn init_search(
     is_searching: Arc<AtomicBool>,
     config: &Config,
-) -> JoinHandle<thread::Result<NodeModuleMap>> {
+) -> JoinHandle<Result<NodeModuleMap, RmError>> {
     // Run search & count in separate thread
     let target_dir = config.target_dir.clone();
-    thread::spawn(move || -> thread::Result<NodeModuleMap> {
+    thread::spawn(move || -> Result<NodeModuleMap, RmError> {
         let mut node_map = NodeModuleMap::new();
 
         // search and on ok count
@@ -31,7 +31,7 @@ pub fn init_search(
                 is_searching.store(false, Ordering::Relaxed);
                 Ok(node_map)
             }
-            Err(e) => return Err(Box::new(e)),
+            Err(_) => return Err(RmError::Io),
         }
     })
 }

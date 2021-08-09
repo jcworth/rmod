@@ -2,7 +2,7 @@ use std::{ffi::OsStr, fs::DirEntry, path::Path};
 
 use crate::error::RmError;
 
-pub fn is_directory_valid<'a, 'b>(dir_name: &'a str) -> Result<(), RmError> {
+pub fn is_directory_valid(dir_name: &str) -> Result<(), RmError> {
     if Path::new(dir_name).exists() {
         Ok(())
     } else {
