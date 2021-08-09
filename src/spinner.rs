@@ -7,7 +7,7 @@ use std::{
     thread::{self, JoinHandle},
 };
 
-pub fn create_spinner(is_running: Arc<AtomicBool>) -> JoinHandle<()> {
+pub fn init_spinner(is_running: Arc<AtomicBool>) -> JoinHandle<()> {
     thread::spawn(move || {
         let status_chars = vec!['|', '/', '-', '\\'];
         let mut curr = 0;

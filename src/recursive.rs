@@ -1,18 +1,13 @@
-use std::{
-    error::Error,
-    fs,
-    os::macos::fs::MetadataExt,
-    path::Path,
-};
+use std::{error::Error, fs, os::macos::fs::MetadataExt, path::Path};
 
 use rug::Float;
 
-use crate::{NodeModuleMap, utils};
+use crate::{utils, NodeModuleMap};
 
-pub fn recursive_search(dir: &Path, module_map: &mut NodeModuleMap) -> Result<(), Box<dyn Error>> {
+pub fn recursive_search(dir: &Path, module_map: &mut NodeModuleMap) -> Result<(), std::io::Error> {
     let path = fs::read_dir(dir)?
         .filter_map(Result::ok)
-        .filter(|e|!utils::is_hidden(e));
+        .filter(|e| !utils::is_hidden(e));
 
     for entry in path {
         let file_path_buf = entry.path();
@@ -52,4 +47,3 @@ pub fn recursive_count(dir: &Path) -> Result<Float, Box<dyn Error>> {
     }
     Ok(total_size)
 }
-

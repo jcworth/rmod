@@ -7,6 +7,7 @@ pub mod remove;
 pub mod search;
 pub mod spinner;
 pub mod utils;
+pub mod error;
 
 pub struct Config {
     target_dir: String,
@@ -43,12 +44,6 @@ impl NodeModuleMap {
         self.folder_count += 1;
     }
 }
-
-// #[derive(Error)]
-// enum RMError {
-//     IOError,
-//     ConfigError
-// }
 
 // enum FolderType {
 //     NodeModules,
