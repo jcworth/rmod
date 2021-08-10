@@ -1,16 +1,23 @@
-use rm_modules::{init, Config};
+use rm_modules::{error::RmError, init, Config};
 use std::{env, process};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
 
     let config: Config = Config::new(&args).unwrap_or_else(|err| {
-        eprintln!("Error parsing arguments: {}", err);
+        eprintln!("{}", err);
         process::exit(1);
     });
 
-    if let Err(e) = init::run(&config) {
-        eprintln!("Application error: {}", e);
-        process::exit(1)
+    match init::run(config) {
+        Ok(_) => println!("nice"),
+        Err(e) => {
+            match e {
+                RmError::Io => eprintln!("{}", e),
+                RmError::InvalidDir => eprintln!("{}", e),
+                _ => eprintln!("Unknown error"),
+            }
+            process::exit(1);
+        }
     };
 }
