@@ -10,7 +10,7 @@ fn main() {
     });
 
     match init::run(config) {
-        Ok(_) => println!("nice"),
+        Ok(result) => println!("Removed {}mb", result),
         Err(e) => {
             match e {
                 RmError::Io => eprintln!("{}", e),

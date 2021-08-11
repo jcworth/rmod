@@ -1,29 +1,22 @@
-use std::sync::{atomic::AtomicBool, Arc};
+use rug::Float;
 
-use crate::{error::RmError, search, spinner, utils, Config};
+use crate::{error::RmError, search, utils, Config};
 
 // Run the program
-pub fn run(config: Config) -> Result<(), RmError> {
+pub fn run(config: Config) -> Result<Float, RmError> {
     // Check target_dir
     match utils::is_directory_valid(&config.target_dir) {
         Ok(_) => {
-            // Shared running state
-            let is_searching = Arc::new(AtomicBool::new(true));
-            let is_searching_shared = is_searching.clone();
-
-            // Create spinner & begin search in separate threads
-            let spinner_handle = spinner::init_spinner(is_searching);
-            let init_search_handle = search::init_search(is_searching_shared, &config);
-
-            // Wait for threads
-            // @TODO:  Better error handling here
-            spinner_handle.join().unwrap();
-            if let Err(e) = init_search_handle.join().unwrap() {
-                return Err(e);
-            };
-
-            Ok(())
+            // @TODO: Spinner start here
+            // // Create spinner & begin search in separate threads
+            // let spinner_handle = spinner::init_spinner(is_searching);
+            match search::init_search(&config) {
+                // @TODO: SPinner end here
+                // @TODO: return results from search
+                Ok(res) => Ok(res),
+                Err(e) => Err(e),
+            }
         }
-        Err(e) => return Err(e),
+        Err(e) => Err(e),
     }
 }
