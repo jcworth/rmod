@@ -1,37 +1,25 @@
-use std::{
-    path::Path,
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc,
-    },
-    thread::{self, JoinHandle},
-};
+use std::path::Path;
 
-use crate::{error::RmError, recursive, Config, NodeModuleMap};
+use crate::{error::RmError, recursive::Recursive, Config, NodeModuleMap};
 
-pub fn init_search(
-    is_searching: Arc<AtomicBool>,
-    config: &Config,
-) -> JoinHandle<Result<NodeModuleMap, RmError>> {
+pub fn init_search(config: &Config) -> Result<NodeModuleMap, RmError> {
     // Run search & count in separate thread
-    let target_dir = config.target_dir.clone();
-    thread::spawn(move || -> Result<NodeModuleMap, RmError> {
-        let mut node_map = NodeModuleMap::new();
-
-        // search and on ok count
-        match recursive::recursive_search(Path::new(&target_dir), &mut node_map) {
-            Ok(_) => {
-                // Store size of node folders
-                for dir in &mut node_map.dirs {
-                    let new_file_size = recursive::recursive_count(dir.0).unwrap();
-                    // bytes to mb
-                    *dir.1 += new_file_size / 1000 / 1000;
-                }
-
-                is_searching.store(false, Ordering::Relaxed);
-                Ok(node_map)
+    // let target_dir = config.target_dir.clone();
+    let r = Recursive::new(&config.target_dir)?;
+    let mut nm_map = NodeModuleMap::new();
+    // search and on ok count
+    let path = Path::new(&r.dir);
+    match r.search(path, &mut nm_map) {
+        Ok(_) => {
+            // Store size of node folders
+            for dir in &mut nm_map.dirs {
+                let new_file_size = r.count(dir.0).unwrap();
+                // bytes to mb
+                *dir.1 += new_file_size / 1000 / 1000;
             }
-            Err(_) => return Err(RmError::Io),
+
+            Ok(nm_map)
         }
-    })
+        Err(_) => Err(RmError::Io),
+    }
 }

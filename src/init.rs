@@ -1,29 +1,21 @@
-use std::sync::{atomic::AtomicBool, Arc};
-
-use crate::{error::RmError, search, spinner, utils, Config};
+use crate::{error::RmError, search, utils, Config, NodeModuleMap};
 
 // Run the program
-pub fn run(config: Config) -> Result<(), RmError> {
+pub fn run(config: Config) -> Result<NodeModuleMap, RmError> {
     // Check target_dir
-    match utils::is_directory_valid(&config.target_dir) {
-        Ok(_) => {
-            // Shared running state
-            let is_searching = Arc::new(AtomicBool::new(true));
-            let is_searching_shared = is_searching.clone();
+    utils::is_directory_valid(&config.target_dir)?;
 
-            // Create spinner & begin search in separate threads
-            let spinner_handle = spinner::init_spinner(is_searching);
-            let init_search_handle = search::init_search(is_searching_shared, &config);
+    // @TODO: Spinner start here
+    // // Create spinner & begin search in separate threads
+    // let spinner_handle = spinner::init_spinner(is_searching);
+    match search::init_search(&config) {
+        // @TODO: SPinner end here
+        // @TODO: return results from search
+        Ok(res) => {
+            // @TODO: remove returned directories & return total removed size
 
-            // Wait for threads
-            // @TODO:  Better error handling here
-            spinner_handle.join().unwrap();
-            if let Err(e) = init_search_handle.join().unwrap() {
-                return Err(e);
-            };
-
-            Ok(())
+            Ok(res)
         }
-        Err(e) => return Err(e),
+        Err(e) => Err(e),
     }
 }

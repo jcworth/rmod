@@ -30,6 +30,7 @@ impl Config {
 pub struct NodeModuleMap {
     folder_count: u32,
     dirs: HashMap<PathBuf, Float>,
+    pub total_size: Float,
 }
 
 impl NodeModuleMap {
@@ -37,6 +38,7 @@ impl NodeModuleMap {
         NodeModuleMap {
             dirs: HashMap::new(),
             folder_count: 0,
+            total_size: Float::with_val(32, 0.0),
         }
     }
 
