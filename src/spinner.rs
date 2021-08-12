@@ -7,26 +7,23 @@ use std::{
     thread::{self, JoinHandle},
 };
 
-pub fn init_spinner(is_running: Arc<AtomicBool>) -> JoinHandle<()> {
-    thread::spawn(move || {
-        let status_chars = vec!['|', '/', '-', '\\'];
-        let mut curr = 0;
+use indicatif::{ProgressBar, ProgressStyle};
 
-        while is_running.load(Ordering::Relaxed) {
-            // Clear stderr
-            eprintln!("{}[2J", 27 as char);
-
-            if curr == 4 {
-                curr = 0
-            };
-
-            // print to stderr at position 1
-            eprintln!("{}[;H{}", 27 as char, status_chars[curr]);
-            curr += 1;
-
-            thread::sleep(time::Duration::from_millis(100));
-        }
-        // Clear stderr at end of loop
-        eprintln!("{}[2J", 27 as char);
-    })
+pub struct Spinner {
+    spin: ProgressBar
 }
+
+impl Spinner {
+    pub fn new() -> Self {
+        let spin = ProgressBar::new_spinner();
+
+        spin.set_style(ProgressStyle::default_spinner().template("{spinner} Searching..."));
+        spin.enable_steady_tick(15);
+        Self {spin}
+    }
+
+    pub fn end(&self) {
+        self.spin.finish_and_clear();
+    }
+}
+

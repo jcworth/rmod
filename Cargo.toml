@@ -7,4 +7,4 @@ edition = "2018"
 
 [dependencies]
 rug = "1.13"
-
+indicatif = "0.16.2"
