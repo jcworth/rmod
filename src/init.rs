@@ -8,7 +8,7 @@ pub fn run(config: Config) -> Result<NodeModuleMap, RmError> {
     // @TODO: Spinner start here
     // // Create spinner & begin search in separate threads
     // let spinner_handle = spinner::init_spinner(is_searching);
-    let spinner = Spinner::new();
+    let spinner = Spinner::default();
     match search::init_search(&config) {
         // @TODO: SPinner end here
         // @TODO: return results from search
