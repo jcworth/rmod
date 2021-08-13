@@ -2,13 +2,12 @@ use std::{fs, os::macos::fs::MetadataExt, path::Path};
 
 use rug::Float;
 
-use crate::{error::RmError, utils, NodeModuleMap, spinner::Spinner};
+use crate::{error::RmError, spinner::Spinner, utils, NodeModuleMap};
 
 #[derive(Debug)]
 pub struct Recursive {
     pub dir: String,
-    pub spinner: Spinner 
-    // store: NodeModuleMap,
+    pub spinner: Spinner, // store: NodeModuleMap,
 }
 
 impl Recursive {
@@ -16,7 +15,7 @@ impl Recursive {
         if fs::metadata(&path).is_ok() {
             Ok(Self {
                 dir: path.to_string(),
-                spinner: Spinner::default()
+                spinner: Spinner::default(),
             })
         } else {
             Err(RmError::InvalidDir)
@@ -29,9 +28,9 @@ impl Recursive {
             .filter(|e| !utils::is_hidden(e));
 
         for entry in entries {
-            
-            self.spinner.msg(String::from(entry.file_name().to_string_lossy()));
-            
+            let file_name_owned = String::from(entry.file_name().to_string_lossy());
+            self.spinner.msg(file_name_owned);
+
             let file_path_buf = entry.path();
             if let Ok(attribs) = file_path_buf.metadata() {
                 let file_type = &attribs.file_type();
@@ -39,7 +38,7 @@ impl Recursive {
                 if file_type.is_symlink() {
                     continue;
                 } else if file_type.is_dir() && utils::is_node_modules(&file_path_buf) {
-                    nm_map.add(file_path_buf)
+                    nm_map.add(file_path_buf);
                 } else if file_type.is_dir() {
                     self.search(&file_path_buf, nm_map)?;
                 }
@@ -54,10 +53,13 @@ impl Recursive {
         let mut total_size = Float::with_val(32, 0.0);
 
         for entry in entries {
+            let file_name_owned = String::from(entry.file_name().to_string_lossy());
+            self.spinner.msg(file_name_owned);
+
             let file_path_buf = entry.path();
             if let Ok(attribs) = file_path_buf.metadata() {
                 let file_type = &attribs.file_type();
-                
+
                 if file_type.is_symlink() {
                     continue;
                 } else if file_type.is_dir() {
