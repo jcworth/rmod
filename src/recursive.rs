@@ -2,12 +2,12 @@ use std::{fs, os::macos::fs::MetadataExt, path::Path};
 
 use rug::Float;
 
-use crate::{error::RmError, utils, NodeModuleMap};
+use crate::{error::RmError, spinner::Spinner, utils, NodeModuleMap};
 
 #[derive(Debug)]
 pub struct Recursive {
     pub dir: String,
-    // store: NodeModuleMap,
+    pub spinner: Spinner, // store: NodeModuleMap,
 }
 
 impl Recursive {
@@ -15,18 +15,24 @@ impl Recursive {
         if fs::metadata(&path).is_ok() {
             Ok(Self {
                 dir: path.to_string(),
+                spinner: Spinner::default(),
             })
         } else {
             Err(RmError::InvalidDir)
         }
     }
+}
 
+impl Recursive {
     pub fn search(&self, path: &Path, nm_map: &mut NodeModuleMap) -> Result<(), RmError> {
         let entries = fs::read_dir(path)?
             .filter_map(Result::ok)
             .filter(|e| !utils::is_hidden(e));
 
         for entry in entries {
+            let file_name_owned = String::from(entry.file_name().to_string_lossy());
+            self.spinner.msg(file_name_owned);
+
             let file_path_buf = entry.path();
             if let Ok(attribs) = file_path_buf.metadata() {
                 let file_type = &attribs.file_type();
@@ -34,7 +40,7 @@ impl Recursive {
                 if file_type.is_symlink() {
                     continue;
                 } else if file_type.is_dir() && utils::is_node_modules(&file_path_buf) {
-                    nm_map.add(file_path_buf)
+                    nm_map.add(file_path_buf);
                 } else if file_type.is_dir() {
                     self.search(&file_path_buf, nm_map)?;
                 }

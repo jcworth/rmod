@@ -1,4 +1,4 @@
-use rm_modules::{error::RmError, init, Config};
+use rm_modules::{init, Config};
 use std::{env, process};
 
 fn main() {
@@ -10,13 +10,9 @@ fn main() {
     });
 
     match init::run(config) {
-        Ok(result) => println!("Removed {}mb", result.total_size),
+        Ok(result) => println!("Removed {} MB", result.total_size),
         Err(e) => {
-            match e {
-                RmError::Io => eprintln!("{}", e),
-                RmError::InvalidDir => eprintln!("{}", e),
-                _ => eprintln!("Unknown error"),
-            }
+            eprintln!("{:?}", e);
             process::exit(1);
         }
     };

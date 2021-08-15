@@ -1,32 +1,37 @@
-use core::time;
-use std::{
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc,
-    },
-    thread::{self, JoinHandle},
-};
+use indicatif::{ProgressBar, ProgressStyle};
 
-pub fn init_spinner(is_running: Arc<AtomicBool>) -> JoinHandle<()> {
-    thread::spawn(move || {
-        let status_chars = vec!['|', '/', '-', '\\'];
-        let mut curr = 0;
+#[derive(Debug)]
+pub struct Spinner {
+    pub spin: ProgressBar,
+}
 
-        while is_running.load(Ordering::Relaxed) {
-            // Clear stderr
-            eprintln!("{}[2J", 27 as char);
+impl Default for Spinner {
+    fn default() -> Self {
+        let spin = ProgressBar::new_spinner();
 
-            if curr == 4 {
-                curr = 0
-            };
+        spin.set_style(
+            ProgressStyle::default_spinner().template("{spinner:.yellow} Searching: {wide_msg}"),
+        );
+        spin.enable_steady_tick(50);
 
-            // print to stderr at position 1
-            eprintln!("{}[;H{}", 27 as char, status_chars[curr]);
-            curr += 1;
+        Self { spin }
+    }
+}
 
-            thread::sleep(time::Duration::from_millis(100));
-        }
-        // Clear stderr at end of loop
-        eprintln!("{}[2J", 27 as char);
-    })
+impl Spinner {
+    pub fn msg(&self, msg: String) {
+        self.spin.set_message(msg);
+    }
+
+    pub fn set_count_style(&self) {
+        self.spin.set_style(
+            ProgressStyle::default_spinner()
+                .template("{spinner:.yellow} Calculating total size: {msg} MB"),
+        );
+        self.spin.set_message("0.0");
+    }
+
+    pub fn end(&self) {
+        self.spin.finish_and_clear();
+    }
 }
