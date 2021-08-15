@@ -37,23 +37,30 @@ impl NodeModuleMap {
         NodeModuleMap {
             dirs: HashMap::new(),
             folder_count: 0,
-            total_size: Float::with_val(32, 0.0),
+            total_size: Float::new(32),
         }
     }
 
     fn add(&mut self, entry: PathBuf) {
-        self.dirs.insert(entry, Float::with_val(32, 0.0));
+        self.dirs.insert(entry, Float::new(32));
         self.folder_count += 1;
     }
 }
+enum FileSize {
+    B,
+    KB,
+    MB,
+    GB,
+}
 
-// enum FolderType {
-//     NodeModules,
-// }
-
-// enum FileSize {
-//     B,
-//     KB,
-//     MB,
-//     GB,
-// }
+impl FileSize {
+    fn calculate(&self, val: Float) -> Float {
+        let thousand = Float::with_val(32, 1000);
+        match self {
+            FileSize::B => return val,
+            FileSize::KB => return val / &thousand,
+            FileSize::MB => return val / &thousand / &thousand,
+            FileSize::GB => return val / &thousand / &thousand / &thousand,
+        }
+    }
+}

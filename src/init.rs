@@ -1,4 +1,4 @@
-use crate::{error::RmError, recursive::Recursive, utils, Config, NodeModuleMap};
+use crate::{error::RmError, recursive::Recursive, utils, Config, FileSize, NodeModuleMap};
 use std::path::Path;
 
 use rug::Float;
@@ -26,14 +26,12 @@ pub fn run(config: Config) -> Result<NodeModuleMap, RmError> {
 
                 // Add individual dir_size to total
                 all_dirs_size += dir_size;
-                r.spinner.msg(
-                    (&all_dirs_size / Float::with_val(32, 1000) / Float::with_val(32, 1000))
-                        .to_string(),
-                );
+                r.spinner
+                    .msg((FileSize::MB.calculate(all_dirs_size)).to_string());
             }
-
+            
             // bytes to mb on total val
-            nm_map.total_size += all_dirs_size / 1000 / 1000;
+            nm_map.total_size += FileSize::MB.calculate(all_dirs_size);
             r.spinner.end();
             Ok(nm_map)
         }
