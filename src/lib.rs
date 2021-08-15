@@ -6,7 +6,6 @@ pub mod error;
 pub mod init;
 pub mod recursive;
 pub mod remove;
-pub mod search;
 pub mod spinner;
 pub mod utils;
 

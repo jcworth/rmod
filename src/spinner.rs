@@ -10,9 +10,9 @@ impl Default for Spinner {
         let spin = ProgressBar::new_spinner();
 
         spin.set_style(
-            ProgressStyle::default_spinner().template("{spinner:.yellow} Searching: {msg}"),
+            ProgressStyle::default_spinner().template("{spinner:.yellow} Searching: {wide_msg}"),
         );
-        spin.enable_steady_tick(100);
+        spin.enable_steady_tick(50);
 
         Self { spin }
     }
@@ -21,6 +21,14 @@ impl Default for Spinner {
 impl Spinner {
     pub fn msg(&self, msg: String) {
         self.spin.set_message(msg);
+    }
+
+    pub fn set_count_style(&self) {
+        self.spin.set_style(
+            ProgressStyle::default_spinner()
+                .template("{spinner:.yellow} Calculating total size: {msg} MB"),
+        );
+        self.spin.set_message("0.0");
     }
 
     pub fn end(&self) {

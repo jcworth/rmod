@@ -21,7 +21,9 @@ impl Recursive {
             Err(RmError::InvalidDir)
         }
     }
+}
 
+impl Recursive {
     pub fn search(&self, path: &Path, nm_map: &mut NodeModuleMap) -> Result<(), RmError> {
         let entries = fs::read_dir(path)?
             .filter_map(Result::ok)
@@ -53,9 +55,6 @@ impl Recursive {
         let mut total_size = Float::with_val(32, 0.0);
 
         for entry in entries {
-            let file_name_owned = String::from(entry.file_name().to_string_lossy());
-            self.spinner.msg(file_name_owned);
-
             let file_path_buf = entry.path();
             if let Ok(attribs) = file_path_buf.metadata() {
                 let file_type = &attribs.file_type();
