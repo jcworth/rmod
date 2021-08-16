@@ -30,6 +30,7 @@ pub fn run(config: Config) -> Result<NodeModuleMap, RmError> {
             // bytes to mb on total val
             nm_map.total_size += FileSize::MB.get_value(all_dirs_size);
             r.spinner.end();
+
             Ok(nm_map)
         }
         Err(_) => Err(RmError::Io),
