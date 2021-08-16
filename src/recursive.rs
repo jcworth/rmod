@@ -1,7 +1,5 @@
 use std::{fs, os::macos::fs::MetadataExt, path::Path};
 
-use rug::Float;
-
 use crate::{error::RmError, spinner::Spinner, utils, NodeModuleMap};
 
 #[derive(Debug)]
@@ -49,10 +47,11 @@ impl Recursive {
         Ok(())
     }
 
-    pub fn count(&self, path: &Path) -> Result<Float, RmError> {
+    pub fn count(&self, path: &Path) -> Result<f64, RmError> {
         // @TODO: make block calc platform generic - currently unix/macos
         let entries = fs::read_dir(path)?.filter_map(Result::ok);
-        let mut total_size = Float::with_val(32, 0.0);
+        // let mut total_size = Float::with_val(32, 0.0);
+        let mut total_size = 0.0;
 
         for entry in entries {
             let file_path_buf = entry.path();
@@ -64,7 +63,8 @@ impl Recursive {
                 } else if file_type.is_dir() {
                     total_size += self.count(&file_path_buf)?;
                 } else {
-                    total_size += Float::with_val(32, attribs.st_blocks() * 512);
+                    let tmp_size = attribs.st_blocks() * 512;
+                    total_size += tmp_size as f64;
                 }
             }
         }

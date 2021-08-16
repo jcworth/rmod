@@ -1,8 +1,6 @@
 use crate::{error::RmError, recursive::Recursive, utils, Config, FileSize, NodeModuleMap};
 use std::path::Path;
 
-use rug::Float;
-
 // Run the program
 pub fn run(config: Config) -> Result<NodeModuleMap, RmError> {
     // Check target_dir
@@ -16,22 +14,21 @@ pub fn run(config: Config) -> Result<NodeModuleMap, RmError> {
     match r.search(path, &mut nm_map) {
         Ok(_) => {
             // Store size of node_module folders
-            let mut all_dirs_size = Float::new(32);
-
+            let mut all_dirs_size = 0.0;
             r.spinner.set_count_style();
 
             for dir in &mut nm_map.dirs {
-                let mut dir_size = dir.1.clone();
+                let mut dir_size = *dir.1;
                 dir_size += r.count(dir.0)?;
 
                 // Add individual dir_size to total
                 all_dirs_size += dir_size;
                 r.spinner
-                    .msg((FileSize::MB.calculate(all_dirs_size)).to_string());
+                    .msg(format!("{:.2}", FileSize::MB.get_value(all_dirs_size)));
             }
-            
+
             // bytes to mb on total val
-            nm_map.total_size += FileSize::MB.calculate(all_dirs_size);
+            nm_map.total_size += FileSize::MB.get_value(all_dirs_size);
             r.spinner.end();
             Ok(nm_map)
         }
