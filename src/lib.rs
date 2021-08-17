@@ -3,10 +3,10 @@ use std::{collections::HashMap, path::PathBuf};
 
 pub mod error;
 pub mod init;
-pub mod recursive;
 pub mod remove;
 pub mod spinner;
 pub mod utils;
+pub mod walk;
 
 pub struct Config {
     target_dir: String,

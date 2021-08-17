@@ -1,4 +1,4 @@
-use crate::{error::RmError, recursive::Recursive, utils, Config, FileSize, NodeModuleMap};
+use crate::{error::RmError, utils, walk::Walk, Config, FileSize, NodeModuleMap};
 use std::path::Path;
 
 // Run the program
@@ -6,7 +6,7 @@ pub fn run(config: Config) -> Result<NodeModuleMap, RmError> {
     // Check target_dir
     utils::is_directory_valid(&config.target_dir)?;
 
-    let r = Recursive::new(&config.target_dir)?;
+    let r = Walk::new(&config.target_dir)?;
     let mut nm_map = NodeModuleMap::new();
 
     // search and on ok count
