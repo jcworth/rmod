@@ -47,10 +47,9 @@ impl Recursive {
         Ok(())
     }
 
+    // @TODO: make block calc platform generic - currently unix/macos
     pub fn count(&self, path: &Path) -> Result<f64, RmError> {
-        // @TODO: make block calc platform generic - currently unix/macos
         let entries = fs::read_dir(path)?.filter_map(Result::ok);
-        // let mut total_size = Float::with_val(32, 0.0);
         let mut total_size = 0.0;
 
         for entry in entries {
