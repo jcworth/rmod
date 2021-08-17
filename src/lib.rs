@@ -1,13 +1,12 @@
 use error::RmError;
-use rug::Float;
 use std::{collections::HashMap, path::PathBuf};
 
 pub mod error;
 pub mod init;
-pub mod recursive;
 pub mod remove;
 pub mod spinner;
 pub mod utils;
+pub mod walk;
 
 pub struct Config {
     target_dir: String,
@@ -28,8 +27,8 @@ impl Config {
 #[derive(Debug)]
 pub struct NodeModuleMap {
     folder_count: u32,
-    dirs: HashMap<PathBuf, Float>,
-    pub total_size: Float,
+    dirs: HashMap<PathBuf, f64>,
+    pub total_size: f64,
 }
 
 impl NodeModuleMap {
@@ -37,23 +36,31 @@ impl NodeModuleMap {
         NodeModuleMap {
             dirs: HashMap::new(),
             folder_count: 0,
-            total_size: Float::with_val(32, 0.0),
+            total_size: 0.0,
         }
     }
 
     fn add(&mut self, entry: PathBuf) {
-        self.dirs.insert(entry, Float::with_val(32, 0.0));
+        self.dirs.insert(entry, 0.0);
         self.folder_count += 1;
     }
 }
 
-// enum FolderType {
-//     NodeModules,
-// }
+#[allow(dead_code)]
+enum FileSize {
+    B,
+    KB,
+    MB,
+    GB,
+}
 
-// enum FileSize {
-//     B,
-//     KB,
-//     MB,
-//     GB,
-// }
+impl FileSize {
+    fn get_value(&self, val: f64) -> f64 {
+        match self {
+            FileSize::B => val,
+            FileSize::KB => val / 1000_f64,
+            FileSize::MB => val / 1000_f64 / 1000_f64,
+            FileSize::GB => val / 1000_f64 / 1000_f64 / 1000_f64,
+        }
+    }
+}

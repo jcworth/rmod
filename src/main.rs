@@ -10,7 +10,7 @@ fn main() {
     });
 
     match init::run(config) {
-        Ok(result) => println!("Removed {} MB", result.total_size),
+        Ok(result) => println!("Removed {:.2} MB", result.total_size),
         Err(e) => {
             eprintln!("{:?}", e);
             process::exit(1);
