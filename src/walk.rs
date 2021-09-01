@@ -1,72 +1,91 @@
-use std::{fs, os::macos::fs::MetadataExt, path::Path};
+use std::{fs::{self, ReadDir}, io::Result, path::PathBuf};
 
-use crate::{error::RmError, spinner::Spinner, utils, NodeModuleMap};
+// use crate::{error::RmError, spinner::Spinner, utils, NodeModuleMap};
+
+// TODO: Refactor 'unwrap' calls w/ error handling
 
 #[derive(Debug)]
-pub struct Walk {
-    pub dir: String,
-    pub spinner: Spinner, // store: NodeModuleMap,
+struct Entry {
+    abs_path: PathBuf,
+    file_type: fs::FileType,
+    size: u64
 }
 
-impl Walk {
-    pub fn new(path: &str) -> Result<Self, RmError> {
-        if fs::metadata(&path).is_ok() {
-            Ok(Self {
-                dir: path.to_string(),
-                spinner: Spinner::default(),
-            })
-        } else {
-            Err(RmError::InvalidDir)
-        }
+impl Entry {
+    fn from_dir_entry(entry: fs::DirEntry) -> Result<Entry> {
+        Ok(Entry {
+            abs_path: entry.path(),
+            file_type: entry.file_type()?,
+            size: entry.metadata()?.len()
+        })
     }
 }
 
-impl Walk {
-    pub fn search(&self, path: &Path, nm_map: &mut NodeModuleMap) -> Result<(), RmError> {
-        let entries = fs::read_dir(path)?
-            .filter_map(Result::ok)
-            .filter(|e| !utils::is_hidden(e));
+#[derive(Debug)]
+struct EntryIter {
+    list: Vec<ReadDir>,
+}
 
-        for entry in entries {
-            let file_name_owned = String::from(entry.file_name().to_string_lossy());
-            self.spinner.msg(file_name_owned);
-
-            let file_path_buf = entry.path();
-            if let Ok(attribs) = file_path_buf.metadata() {
-                let file_type = &attribs.file_type();
-
-                if file_type.is_symlink() {
-                    continue;
-                } else if file_type.is_dir() && utils::is_node_modules(&file_path_buf) {
-                    nm_map.add(file_path_buf);
-                } else if file_type.is_dir() {
-                    self.search(&file_path_buf, nm_map)?;
-                }
-            }
-        }
-        Ok(())
+impl EntryIter {
+    fn pop(&mut self) {
+        self.list.pop();
     }
 
-    // @TODO: make block calc platform generic - currently unix/macos
-    pub fn count(&self, path: &Path) -> Result<f64, RmError> {
-        let entries = fs::read_dir(path)?.filter_map(Result::ok);
-        let mut total_size = 0.0;
+    fn push(&mut self, v: ReadDir) {
+        self.list.push(v);
+    }
+}
 
-        for entry in entries {
-            let file_path_buf = entry.path();
-            if let Ok(attribs) = file_path_buf.metadata() {
-                let file_type = &attribs.file_type();
+impl Iterator for EntryIter {
+    type Item = Result<Entry>;
 
-                if file_type.is_symlink() {
-                    continue;
-                } else if file_type.is_dir() {
-                    total_size += self.count(&file_path_buf)?;
-                } else {
-                    let tmp_size = attribs.st_blocks() * 512;
-                    total_size += tmp_size as f64;
+    fn next(&mut self) -> Option<Result<Entry>> {
+        while !self.list.is_empty() {
+            let next_item = self.list.last_mut().unwrap().next();
+
+            match next_item {
+                None => self.pop(),
+                Some(Ok(entry)) => {
+                    if let Ok(entry) = Entry::from_dir_entry(entry) {
+                        if entry.file_type.is_dir() && !entry.file_type.is_symlink() {
+                            let read_dir = fs::read_dir(&entry.abs_path).unwrap();
+                            self.push(read_dir);
+
+                            // TODO: option to include folder
+                            return Some(Ok(entry));
+                        } else if !entry.file_type.is_symlink() {
+                            return Some(Ok(entry));
+                        }
+                    }
+                },
+                Some(Err(e)) => {
+                    return Some(Err(e))
                 }
             }
         }
-        Ok(total_size)
+        None
+    }
+}
+
+#[derive(Debug)]
+struct EntryWalk {
+    list: Vec<ReadDir>,
+}
+
+impl EntryWalk {
+    fn new(path: PathBuf) -> Self {
+        let list = fs::read_dir(path).unwrap();
+        EntryWalk { list: vec![list] }
+    }
+}
+
+impl IntoIterator for EntryWalk {
+    type Item = Result<Entry>;
+    type IntoIter = EntryIter;
+
+    fn into_iter(self) -> Self::IntoIter {
+        EntryIter {
+            list: self.list,
+        }
     }
 }
