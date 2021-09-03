@@ -17,5 +17,5 @@ pub fn is_hidden(entry: &DirEntry) -> bool {
 
 // Return bool if folder is named node_modules
 pub fn is_node_modules(file: &Path) -> bool {
-    file.file_name().unwrap() == OsStr::new("node_modules")
+    file.file_name().unwrap() == OsStr::new("node_modules") && file.is_dir()
 }
