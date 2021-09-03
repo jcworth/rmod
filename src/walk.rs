@@ -49,6 +49,7 @@ impl Entry {
 #[derive(Debug)]
 pub struct EntryIter {
     list: Vec<ReadDir>,
+    options: EntryOptions,
 }
 
 impl EntryIter {
@@ -72,13 +73,17 @@ impl Iterator for EntryIter {
                 None => self.pop(),
                 Some(Ok(entry)) => {
                     if let Ok(entry) = Entry::from_dir_entry(entry) {
-                        // TODO: Options for node_modules, symlink, etc
 
-                        // if node_modules return the entry and stop descending
-                        if utils::is_node_modules(&entry.abs_path) {
-                            // self.pop();
-                            return Some(Ok(entry));
+                        // if descend into node_modules = false, return entry & stop descending
+                        // TODO: Refactor naming
+                        if !self.options.descend_nm {
+                            if utils::is_node_modules(&entry.abs_path) {
+                                // self.pop();
+                                return Some(Ok(entry));
+                            }
                         }
+
+                        // TODO: Ignore hidden
 
                         // If dir && not a symlink, descend and return folder
                         if entry.file_type().is_dir() && !entry.file_type().is_symlink() {
@@ -102,12 +107,46 @@ impl Iterator for EntryIter {
 #[derive(Debug)]
 pub struct EntryWalk {
     list: Vec<ReadDir>,
+    options: EntryOptions,
 }
 
 impl EntryWalk {
-    pub fn new(path: PathBuf) -> Result<Self> {
-        let list = fs::read_dir(path).unwrap();
-        Ok(EntryWalk { list: vec![list] })
+    pub fn new(path: PathBuf, opts: EntryOptions) -> Result<Self> {
+        let list = fs::read_dir(path)?;
+        Ok(EntryWalk {
+            list: vec![list],
+            options: opts,
+        })
+    }
+
+    pub fn from_list(list: Vec<Entry>, opts: EntryOptions) -> Result<Self> {
+        let collection = list
+            .into_iter()
+            .map(|e| fs::read_dir(e.path()))
+            .filter_map(Result::ok)
+            .collect::<Vec<_>>();
+
+        Ok(EntryWalk {
+            list: collection,
+            options: opts,
+        })
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct EntryOptions {
+    ignore_hidden: bool,
+    include_folders: bool,
+    descend_nm: bool,
+}
+
+impl EntryOptions {
+    pub fn new(ignore_hidden: bool, include_folders: bool, descend_nm: bool) -> Self {
+        EntryOptions {
+            ignore_hidden,
+            include_folders,
+            descend_nm,
+        }
     }
 }
 
@@ -116,6 +155,9 @@ impl IntoIterator for EntryWalk {
     type IntoIter = EntryIter;
 
     fn into_iter(self) -> Self::IntoIter {
-        EntryIter { list: self.list }
+        EntryIter {
+            list: self.list,
+            options: self.options,
+        }
     }
 }
