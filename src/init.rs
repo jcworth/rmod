@@ -1,38 +1,53 @@
-use crate::{error::RmError, utils, walk::Walk, Config, FileSize, NodeModuleMap};
-use std::path::Path;
+use std::os::macos::fs::MetadataExt;
+
+use crate::{
+    error::RmError,
+    spinner::{SpinStyle, Spinner},
+    utils,
+    walk::{EntryOptions, EntryWalk},
+    Config, FileSize, NodeModuleMap,
+};
 
 // Run the program
-pub fn run(config: Config) -> Result<NodeModuleMap, RmError> {
+pub fn init(config: Config) -> Result<NodeModuleMap, RmError> {
     // Check target_dir
     utils::is_directory_valid(&config.target_dir)?;
 
-    let walk = Walk::new(&config.target_dir)?;
+    let walker_options = EntryOptions::new(true, true, false);
+    let walker = EntryWalk::new(config.target_dir.into(), walker_options)?;
     let mut nm_map = NodeModuleMap::new();
 
-    // search and on ok count
-    let path = Path::new(&walk.dir);
-    match walk.search(path, &mut nm_map) {
-        Ok(_) => {
-            // Store size of node_module folders
-            let mut all_dirs_size = 0.0;
-            walk.spinner.set_count_style();
+    let spinner = Spinner::new();
 
-            for dir in &mut nm_map.dirs {
-                let mut dir_size = *dir.1;
-                dir_size += walk.count(dir.0)?;
+    spinner.set_style(SpinStyle::Search);
+    let entries = walker
+        .into_iter()
+        .filter_map(|v| v.ok())
+        .filter(|v| v.is_node_modules())
+        .collect::<Vec<_>>();
 
-                // Add individual dir_size to total
-                all_dirs_size += dir_size;
-                walk.spinner
-                    .msg(format!("{:.2}", FileSize::MB.get_value(all_dirs_size)));
-            }
+    // Set spinner style
+    spinner.set_style(SpinStyle::Count);
 
-            // bytes to mb on total val
-            nm_map.total_size += FileSize::MB.get_value(all_dirs_size);
-            walk.spinner.end();
+    //walk through each dir, total size, add it to nm_map
+    let nm_walker_options = EntryOptions::new(false, true, true);
+    for e in &entries {
+        let mut size: f64 = 0.0;
 
-            Ok(nm_map)
+        for f in EntryWalk::new(e.path().to_path_buf(), nm_walker_options)?
+            .into_iter()
+            .filter_map(|v| v.ok())
+        {
+            let f_size = f.meta().st_blocks() * 512;
+            size += f_size as f64;
+
+            // TODO: Print path name
+            spinner.msg((e.path().to_str().unwrap(), size));
         }
-        Err(_) => Err(RmError::Io),
+
+        nm_map.add(e.path().to_path_buf(), FileSize::MB.get_value(size));
     }
+
+    spinner.end();
+    Ok(nm_map)
 }

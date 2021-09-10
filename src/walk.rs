@@ -1,7 +1,7 @@
 use std::{
     ffi::OsStr,
     fs::{self, ReadDir},
-    io::{Error, Result},
+    io::{Result},
     path::{Path, PathBuf},
 };
 
@@ -73,7 +73,6 @@ impl Iterator for EntryIter {
                 None => self.pop(),
                 Some(Ok(entry)) => {
                     if let Ok(entry) = Entry::from_dir_entry(entry) {
-
                         // if descend into node_modules = false, return entry & stop descending
                         // TODO: Refactor naming
                         if !self.options.descend_nm {
