@@ -1,4 +1,4 @@
-use rm_modules::{init, Config};
+use sj::{Config, init};
 use std::{env, process};
 
 fn main() {
@@ -9,7 +9,7 @@ fn main() {
         process::exit(1);
     });
 
-    match init::run(config) {
+    match init::init(config) {
         Ok(result) => println!("Removed {:.2} MB", result.total_size),
         Err(e) => {
             eprintln!("{:?}", e);

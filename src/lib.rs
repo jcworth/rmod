@@ -9,7 +9,7 @@ pub mod utils;
 pub mod walk;
 
 pub struct Config {
-    target_dir: String,
+    pub target_dir: String,
 }
 
 impl Config {
@@ -32,7 +32,7 @@ pub struct NodeModuleMap {
 }
 
 impl NodeModuleMap {
-    fn new() -> NodeModuleMap {
+    pub fn new() -> NodeModuleMap {
         NodeModuleMap {
             dirs: HashMap::new(),
             folder_count: 0,
@@ -40,14 +40,14 @@ impl NodeModuleMap {
         }
     }
 
-    fn add(&mut self, entry: PathBuf) {
-        self.dirs.insert(entry, 0.0);
+    pub fn add(&mut self, entry: PathBuf, size: f64) {
+        self.dirs.insert(entry, size);
         self.folder_count += 1;
     }
 }
 
 #[allow(dead_code)]
-enum FileSize {
+pub enum FileSize {
     B,
     KB,
     MB,
@@ -55,7 +55,7 @@ enum FileSize {
 }
 
 impl FileSize {
-    fn get_value(&self, val: f64) -> f64 {
+    pub fn get_value(&self, val: f64) -> f64 {
         match self {
             FileSize::B => val,
             FileSize::KB => val / 1000_f64,

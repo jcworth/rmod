@@ -1,4 +1,8 @@
+
+
 use indicatif::{ProgressBar, ProgressStyle};
+
+use crate::FileSize;
 
 #[derive(Debug)]
 pub struct Spinner {
@@ -8,11 +12,11 @@ pub struct Spinner {
 pub enum SpinStyle {
     Search,
     Count,
-    Remove
+    Remove,
 }
 
-impl Default for Spinner {
-    fn default() -> Self {
+impl Spinner {
+    pub fn new() -> Self {
         let spin = ProgressBar::new_spinner();
 
         Self { spin }
@@ -23,9 +27,10 @@ impl Spinner {
     fn spin(&self) -> &ProgressBar {
         &self.spin
     }
-    
-    pub fn msg(&self, msg: String) {
-        self.spin().set_message(msg);
+
+    pub fn msg(&self, (name, size): (&str, f64)) {
+        self.spin()
+            .set_message(format!("{}: {:.2}", name, FileSize::MB.get_value(size)));
     }
 
     pub fn set_style(&self, style: SpinStyle) {
@@ -33,16 +38,14 @@ impl Spinner {
 
         let (text, default) = match style {
             SpinStyle::Search => ("Searching: {wide_msg}", "..."),
-            SpinStyle::Count => ("Calculating total size: {msg} MB", "0.0"),
+            SpinStyle::Count => ("Calculating size: {msg} MB", "0.0"),
             // TODO
-            SpinStyle::Remove => ("", "")
+            SpinStyle::Remove => ("", ""),
         };
-        
+
         let msg = format!("{{spinner:.yellow}} {}", text);
-        spinner.set_style(
-            ProgressStyle::default_spinner().template(&msg),
-        );
-        
+        spinner.set_style(ProgressStyle::default_spinner().template(&msg));
+
         spinner.set_message(default);
         spinner.enable_steady_tick(50);
     }
