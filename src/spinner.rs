@@ -1,5 +1,3 @@
-
-
 use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::FileSize;
