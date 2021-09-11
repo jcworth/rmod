@@ -1,7 +1,7 @@
 use std::{
     ffi::OsStr,
     fs::{self, ReadDir},
-    io::{Result},
+    io::Result,
     path::{Path, PathBuf},
 };
 
@@ -67,30 +67,30 @@ impl Iterator for EntryIter {
 
     fn next(&mut self) -> Option<Result<Entry>> {
         while !self.list.is_empty() {
-            let next_item = self.list.last_mut().unwrap().next();
+            let next_item = self.list.last_mut()?.next();
 
             match next_item {
                 None => self.pop(),
                 Some(Ok(entry)) => {
                     if let Ok(entry) = Entry::from_dir_entry(entry) {
+
                         // if descend into node_modules = false, return entry & stop descending
                         // TODO: Refactor naming
-                        if !self.options.descend_nm {
-                            if utils::is_node_modules(&entry.abs_path) {
-                                // self.pop();
-                                return Some(Ok(entry));
-                            }
+                        if !self.options.descend_nm && utils::is_node_modules(&entry.abs_path) {
+                            // self.pop();
+                            return Some(Ok(entry));
                         }
 
                         // TODO: Ignore hidden
 
                         // If dir && not a symlink, descend and return folder
                         if entry.file_type().is_dir() && !entry.file_type().is_symlink() {
-                            let read_dir = fs::read_dir(&entry.abs_path).unwrap();
-                            self.push(read_dir);
-
-                            // TODO: option to include folder
-                            return Some(Ok(entry));
+                            if let Ok(read_dir) = fs::read_dir(&entry.abs_path) {
+                                self.push(read_dir);
+    
+                                // TODO: option to include folder
+                                return Some(Ok(entry));
+                            }
                         } else if !entry.file_type().is_symlink() {
                             return Some(Ok(entry));
                         }

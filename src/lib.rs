@@ -28,7 +28,7 @@ impl Config {
 pub struct NodeModuleMap {
     folder_count: u32,
     dirs: HashMap<PathBuf, f64>,
-    pub total_size: f64,
+    total_size: f64,
 }
 
 impl NodeModuleMap {
@@ -43,6 +43,10 @@ impl NodeModuleMap {
     pub fn add(&mut self, entry: PathBuf, size: f64) {
         self.dirs.insert(entry, size);
         self.folder_count += 1;
+    }
+
+    pub fn total_size(&self) -> f64 {
+        self.total_size
     }
 }
 
