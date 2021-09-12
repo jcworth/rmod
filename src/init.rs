@@ -1,5 +1,4 @@
-use dialoguer::Select;
-use std::{io::Write, os::macos::fs::MetadataExt};
+use std::{os::macos::fs::MetadataExt};
 
 use crate::{
     error::RmError,
@@ -35,6 +34,7 @@ pub fn init(config: Config) -> Result<f64, RmError> {
     }
 
     spinner.set_style(SpinStyle::Count);
+
     //walk through each dir, total size, add it to nm_map
     let nm_walker_options = EntryOptions::new(false, true, true);
     for e in &entries {
@@ -60,34 +60,30 @@ pub fn init(config: Config) -> Result<f64, RmError> {
 
     spinner.end();
 
-    let dir_list = nm_map.dirs.iter().collect::<Vec<_>>();
-
-    let mut fmt_list = dir_list
-        .iter()
-        .map(|v| format!("{:?}, {:.2} MB", v.0, v.1))
-        .collect::<Vec<_>>();
-
-    fmt_list.push("All".into());
-
-    let index = Select::new()
-        .with_prompt("Select for deletion")
-        .items(&fmt_list)
-        .interact()?;
-
-    let mut rm_size = 0.0;
-
-    if index == &fmt_list.len() - 1 {
-        eprintln!("Deleting 'ALL'");
-        remove_folders(dir_list.iter().map(|v|v.0).collect::<Vec<_>>())?;
-        rm_size = nm_map.total_size();
-    } else {
-        // dir_list[index] == fmt_list[index] aside from extra val pushed to fmt_list
-        let (dir, size) = (dir_list[index].0, dir_list[index].1);
-        remove_folders(dir_list.iter().map(|v|v.0).collect::<Vec<_>>())?;
-        eprintln!("Selected {:?}", &dir);
-
-        rm_size += *size;
+    eprintln!("Found the following folders:");
+    for (e, f) in nm_map.dirs.iter() {
+        eprintln!("{:?}, {:.2} MB", e, f);
     }
 
-    Ok(rm_size)
+    eprintln!("Total size: {}, delete all? (y/n)", nm_map.total_size());
+
+    let mut str_buf = String::new();
+    let rl = std::io::stdin();
+    loop {
+        rl.read_line(&mut str_buf)?;
+
+        match str_buf.trim() {
+            "y" => {
+                remove_folders(nm_map.dirs.iter().map(|v| v.0).collect::<Vec<_>>())?;
+                break;
+            }
+            "n" => utils::exit(1),
+            _ => {
+                eprintln!("Invalid input, try 'y' or 'n'");
+                str_buf.clear();
+            }
+        }
+    }
+
+    Ok(nm_map.total_size())
 }

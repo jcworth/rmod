@@ -13,7 +13,7 @@ fn main() {
         Ok(result) => println!("Removed {:.2} MB", result),
         Err(e) => {
             eprintln!("{}", e);
-            process::exit(1);
+            utils::exit(1)
         }
     };
 }
