@@ -7,3 +7,4 @@ edition = "2018"
 
 [dependencies]
 indicatif = "0.16.2"
+dialoguer = "0.8.0"

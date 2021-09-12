@@ -73,7 +73,6 @@ impl Iterator for EntryIter {
                 None => self.pop(),
                 Some(Ok(entry)) => {
                     if let Ok(entry) = Entry::from_dir_entry(entry) {
-
                         // if descend into node_modules = false, return entry & stop descending
                         // TODO: Refactor naming
                         if !self.options.descend_nm && utils::is_node_modules(&entry.abs_path) {
@@ -87,7 +86,7 @@ impl Iterator for EntryIter {
                         if entry.file_type().is_dir() && !entry.file_type().is_symlink() {
                             if let Ok(read_dir) = fs::read_dir(&entry.abs_path) {
                                 self.push(read_dir);
-    
+
                                 // TODO: option to include folder
                                 return Some(Ok(entry));
                             }
