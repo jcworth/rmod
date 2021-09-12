@@ -1,4 +1,4 @@
-use sj::{init, Config};
+use rmod::{init, Config};
 use std::{env, process};
 
 fn main() {
