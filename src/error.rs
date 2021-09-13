@@ -5,7 +5,7 @@ pub enum RmError {
     Io,
     Config,
     InvalidDir,
-    NotFound
+    NotFound,
 }
 
 impl std::error::Error for RmError {}
@@ -16,7 +16,7 @@ impl fmt::Display for RmError {
             RmError::Io => "File IO error.",
             RmError::Config => "Error parsing arguments. Incorrect number of args.",
             RmError::InvalidDir => "Directory invalid. Try providing a relative or absolute path.",
-            RmError::NotFound => "No node_modules folder found."
+            RmError::NotFound => "No node_modules folder found.",
         };
         write!(f, "{}", err_msg)
     }

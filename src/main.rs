@@ -1,4 +1,4 @@
-use rmod::{init, Config};
+use rmod::{init, utils, Config};
 use std::{env, process};
 
 fn main() {
@@ -13,7 +13,7 @@ fn main() {
         Ok(result) => println!("Removed {:.2} MB", result),
         Err(e) => {
             eprintln!("{}", e);
-            process::exit(1);
+            utils::exit(1)
         }
     };
 }
