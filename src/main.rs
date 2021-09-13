@@ -1,4 +1,4 @@
-use rmod::{Config, init, utils};
+use rmod::{init, utils, Config};
 use std::{env, process};
 
 fn main() {

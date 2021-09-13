@@ -1,4 +1,7 @@
-use std::{io::{self, BufRead}, os::macos::fs::MetadataExt};
+use std::{
+    io::{self, BufRead},
+    os::macos::fs::MetadataExt,
+};
 
 use crate::{
     error::RmError,
@@ -65,7 +68,10 @@ pub fn init(config: Config) -> Result<f64, RmError> {
         eprintln!("{:?}, {:.2} MB", e, f);
     }
 
-    eprintln!("Total size: {:.2} MB, delete all? (y/n)", nm_map.total_size());
+    eprintln!(
+        "Total size: {:.2} MB, delete all? (y/n)",
+        nm_map.total_size()
+    );
 
     // stdin buffer & lock - faster when locked
     let mut str_buf = String::new();
