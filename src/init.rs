@@ -1,4 +1,4 @@
-use std::{os::macos::fs::MetadataExt};
+use std::{io::{self, BufRead}, os::macos::fs::MetadataExt};
 
 use crate::{
     error::RmError,
@@ -16,12 +16,13 @@ pub fn init(config: Config) -> Result<f64, RmError> {
 
     let mut nm_map = NodeModuleMap::new();
 
+    // Initialise dir walker options
     let walker_options = EntryOptions::new(true, true, false);
-    let walker = EntryWalk::new(config.target_dir.into(), walker_options)?;
+    let walker = EntryWalk::new(config.target().into(), walker_options)?;
 
     let spinner = Spinner::new();
-
     spinner.set_style(SpinStyle::Search);
+
     let entries = walker
         .into_iter()
         .filter_map(|v| v.ok())
@@ -55,7 +56,6 @@ pub fn init(config: Config) -> Result<f64, RmError> {
         nm_map.add(e.path().to_path_buf(), FileSize::MB.get_value(size));
     }
 
-    // Calculate total size
     nm_map.total_size = nm_map.dirs.iter().map(|v| v.1).sum::<f64>();
 
     spinner.end();
@@ -65,12 +65,15 @@ pub fn init(config: Config) -> Result<f64, RmError> {
         eprintln!("{:?}, {:.2} MB", e, f);
     }
 
-    eprintln!("Total size: {}, delete all? (y/n)", nm_map.total_size());
+    eprintln!("Total size: {:.2} MB, delete all? (y/n)", nm_map.total_size());
 
+    // stdin buffer & lock - faster when locked
     let mut str_buf = String::new();
-    let rl = std::io::stdin();
+    let stdin = io::stdin();
+    let mut stdin_handle = stdin.lock();
+
     loop {
-        rl.read_line(&mut str_buf)?;
+        stdin_handle.read_line(&mut str_buf)?;
 
         match str_buf.trim() {
             "y" => {

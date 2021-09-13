@@ -9,7 +9,7 @@ pub mod utils;
 pub mod walk;
 
 pub struct Config {
-    pub target_dir: String,
+    target_dir: String,
 }
 
 impl Config {
@@ -21,6 +21,10 @@ impl Config {
         let target_dir = args[1].clone();
 
         Ok(Config { target_dir })
+    }
+
+    pub fn target(&self) -> &str {
+        &self.target_dir
     }
 }
 
